@@ -2,20 +2,25 @@ use core::slice;
 
 use bevy::{
     app::{Plugin, Startup},
-    asset::{Asset, AssetServer, Assets},
+    asset::{Asset, AssetServer, Assets, Handle},
+    color::Color,
     ecs::{
         component::Component,
         entity::Entity,
-        system::{Commands, Res, ResMut},
+        system::{Commands, Query, Res, ResMut},
         world::World,
     },
-    math::{Vec2, Vec3},
+    math::{
+        primitives::{Rectangle, Segment2d},
+        Quat, Vec2, Vec3,
+    },
     render::{
+        mesh::{Capsule2dMeshBuilder, Mesh},
         render_resource::Texture,
         texture::Image,
         view::{InheritedVisibility, ViewVisibility, Visibility},
     },
-    sprite::{Sprite, SpriteBundle},
+    sprite::{ColorMaterial, MaterialMesh2dBundle, Mesh2dHandle, Sprite, SpriteBundle},
     transform::components::{GlobalTransform, Transform},
 };
 
@@ -33,11 +38,11 @@ impl Plugin for GameplayPlugin {
 }
 
 #[derive(Component, Debug, Clone, PartialEq, Eq, Hash, Default)]
-pub(super) struct NeighbouringTiles {
-    upper: Option<Entity>,
+pub(super) struct NeighboringTiles {
+    right: Option<Entity>,
     upper_right: Option<Entity>,
     lower_right: Option<Entity>,
-    lower: Option<Entity>,
+    left: Option<Entity>,
     lower_left: Option<Entity>,
     upper_left: Option<Entity>,
 }
@@ -45,66 +50,70 @@ pub(super) struct NeighbouringTiles {
 #[derive(Component, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) struct TileConnection(Entity, Entity);
 
-fn spawn_map_randomly(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let tiles = Box::new([
-        ("forest_tile.png", (0, 0)),
-        ("water_tile.png", (0, 1)),
-        ("house_tile.png", (1, 0)),
-        ("road_tile.png", (1, -1)),
-        ("water_tile.png", (0, -1)),
-        ("forest_tile.png", (-1, 0)),
-        ("house_tile.png", (-1, 1)),
-    ]);
-    let tile_connections = Box::new([
-        (0, 1),
-        (0, 2),
-        (0, 3),
-        (0, 4),
-        (0, 5),
-        (0, 6),
-        (1, 2),
-        (1, 6),
-        (2, 3),
-        (3, 4),
-        (4, 5),
-        (5, 6),
-    ]);
-
-    let tiles_entities = tiles
-        .into_iter()
-        .map(|(image_path, axial_coordinates)| {
-            (
-                commands
-                    .spawn(SpriteBundle {
-                        transform: Transform::from_translation(axial_coordinates_to_translation(
-                            axial_coordinates.0,
-                            axial_coordinates.1,
-                        )),
-                        texture: asset_server.load(image_path),
-                        ..Default::default()
-                    })
-                    .id(),
-                NeighbouringTiles::default(),
-            )
-        })
-        .collect::<Box<[(Entity, NeighbouringTiles)]>>();
-
-    for ((entity_0, neighbouring_tiles_0), (entity_1, neighbouring_tiles_1)) in tile_connections
-        .into_iter()
-        .map(|(entity_0, entity_1)| (&tiles_entities[entity_0], &tiles_entities[entity_1]))
-    {
-        assert_ne!(entity_0, entity_1);
-        commands.spawn(TileConnection(*entity_0, *entity_1));
-        // neighbouring_tiles_0.
-    }
+#[derive(Component, Debug, Clone, PartialEq, Eq, Hash, Default)]
+pub(super) struct NeighboringTilesSaveFile {
+    right: Option<usize>,
+    upper_right: Option<usize>,
+    lower_right: Option<usize>,
+    left: Option<usize>,
+    lower_left: Option<usize>,
+    upper_left: Option<usize>,
 }
 
-fn axial_coordinates_to_translation(q: i32, r: i32) -> Vec3 {
-    let q = q as f32;
-    let r = r as f32;
-    Vec3 {
-        x: q * 32.0 + r * 16.0,
-        y: q * 0.0 + r * 21.0,
-        z: 0.0,
+#[derive(Component, Debug, Clone, PartialEq, Eq, Hash)]
+pub(super) struct TileConnectionSaveFile(usize, usize);
+
+fn spawn_map_randomly(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let saved_tiles = Box::new([
+        (
+            "forest_tile.png",
+            NeighboringTilesSaveFile {
+                lower_right: Some(0),
+                lower_left: Some(1),
+                ..Default::default()
+            },
+        ),
+        (
+            "forest_tile.png",
+            NeighboringTilesSaveFile {
+                upper_left: Some(0),
+                lower_left: Some(2),
+                ..Default::default()
+            },
+        ),
+        (
+            "forest_tile.png",
+            NeighboringTilesSaveFile {
+                upper_right: Some(1),
+                lower_right: Some(3),
+                ..Default::default()
+            },
+        ),
+        (
+            "forest_tile.png",
+            NeighboringTilesSaveFile {
+                upper_right: Some(2),
+                upper_left: Some(3),
+                ..Default::default()
+            },
+        ),
+    ]);
+
+    let saved_tile_connections = Box::new([
+        TileConnectionSaveFile(0, 1),
+        TileConnectionSaveFile(0, 2),
+        TileConnectionSaveFile(1, 3),
+        TileConnectionSaveFile(2, 3),
+    ]);
+
+    let mut translations: Box<[Option<Vec2>]> = vec![None; saved_tiles.len()].into_boxed_slice();
+    let mut current_translation = Vec2::new(0.0, 0.0);
+    let mut tiles_todo = vec![0];
+
+    loop {
+        let current_tile = match tiles_todo.pop() {
+            Some(current_tile) => todo!(),
+            None => todo!(),
+        };
     }
 }
