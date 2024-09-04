@@ -11,11 +11,12 @@ use bevy::{
     transform::TransformPlugin,
     window::WindowPlugin,
 };
+use main_menu_plugin::MainMenuPlugin;
 
 use crate::gameplay_plugin::GameplayPlugin;
 
-mod gameplay_maps;
 mod gameplay_plugin;
+mod main_menu_plugin;
 
 pub struct MyGamePlugin;
 
@@ -35,6 +36,7 @@ impl Plugin for MyGamePlugin {
         debug_assert!(app.is_plugin_added::<TransformPlugin>());
         debug_assert!(app.is_plugin_added::<TimePlugin>());
 
+        app.add_plugins(MainMenuPlugin);
         app.add_plugins(GameplayPlugin);
         app.init_state::<GameStates>();
     }
@@ -42,9 +44,7 @@ impl Plugin for MyGamePlugin {
 
 #[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
 enum GameStates {
-    LoadingMainMenu,
-    MainMenu,
-    LoadingGameplay,
     #[default]
+    MainMenu,
     Gameplay,
 }

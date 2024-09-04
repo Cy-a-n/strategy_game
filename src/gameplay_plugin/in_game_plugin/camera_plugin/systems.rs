@@ -13,7 +13,7 @@ use bevy::{
     transform::components::Transform,
 };
 
-use crate::GameStates;
+use crate::gameplay_plugin::GameplayStates;
 
 use super::components::MainCamera;
 
@@ -27,7 +27,7 @@ pub(super) fn setup(mut commands: Commands) {
             ..Default::default()
         },
         MainCamera,
-        StateScoped(GameStates::Gameplay),
+        StateScoped(GameplayStates::InGame),
     ));
 }
 

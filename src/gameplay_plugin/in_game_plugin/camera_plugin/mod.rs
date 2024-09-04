@@ -1,10 +1,11 @@
 use bevy::{
-    app::{Plugin, Startup, Update},
+    app::{Plugin, Update},
     ecs::schedule::IntoSystemConfigs,
+    prelude::OnEnter,
     state::condition::in_state,
 };
 
-use crate::GameStates;
+use crate::gameplay_plugin::GameplayStates;
 
 use self::systems::{camera_controller, setup};
 
@@ -15,10 +16,10 @@ pub(super) struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(Startup, setup.run_if(in_state(GameStates::Gameplay)))
+        app.add_systems(OnEnter(GameplayStates::InGame), setup)
             .add_systems(
                 Update,
-                camera_controller.run_if(in_state(GameStates::Gameplay)),
+                camera_controller.run_if(in_state(GameplayStates::InGame)),
             );
     }
 }

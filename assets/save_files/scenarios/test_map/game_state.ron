@@ -2,11 +2,17 @@ SaveFile (
     tiles: [
         Tile (
             tile_type: "forest",
-            cubic_coordinates: (0, 0, 0),
+            cubic_coordinates: AxialCoordinates (
+                q: 0,
+                r: 0,
+            ),
         ),
         Tile (
             tile_type: "road",
-            cubic_coordinates: (1, 0, -1),
+            cubic_coordinates: AxialCoordinates (
+                q: 1,
+                r: 0,
+            ),
         )
     ],
     tile_connections: [

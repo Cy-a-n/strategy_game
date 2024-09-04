@@ -1,33 +1,61 @@
+use assets::{TileTypeAsset, TileTypeLoader};
 use bevy::{
-    app::{Plugin, Startup},
-    asset::{AssetApp, Handle, ReflectHandle},
+    app::Plugin,
+    asset::{AssetApp, Handle, ReflectAsset, ReflectHandle},
+    prelude::{AppExtStates, OnEnter, ReflectComponent, ReflectResource, States},
+    reflect::Reflect,
 };
-use save_file_io::SaveFile;
-use tiles::{
-    ConnectedTiles, CubicCoordinates, NeighboringTiles, TileType, TileTypeAsset, TileTypeLoader,
-    TilesByCoordinates,
-};
+use components::{AxialCoordinates, ConnectedTiles, NeighboringTiles, TileType};
+use in_game_plugin::InGamePlugin;
+use loading_screen_plugin::LoadingScreenPlugin;
+use resources::TilesByCoordinates;
+use systems::setup;
 
-use self::camera_plugin::CameraPlugin;
+use crate::GameStates;
 
-mod camera_plugin;
-mod save_file_io;
-mod tiles;
+mod in_game_plugin;
+mod loading_screen_plugin;
 
-pub(super) struct GameplayPlugin;
+mod assets;
+mod components;
+mod resources;
+mod save_file;
+mod systems;
+
+pub struct GameplayPlugin;
 
 impl Plugin for GameplayPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugins(CameraPlugin)
-            .init_asset::<TileTypeAsset>()
-            .init_asset_loader::<TileTypeLoader>()
-            .register_type::<NeighboringTiles>()
+        app.add_plugins((LoadingScreenPlugin, InGamePlugin));
+
+        app.register_type::<NeighboringTiles>()
             .register_type::<ConnectedTiles>()
             .register_type::<TileType>()
-            .register_type::<CubicCoordinates>()
+            .register_type::<AxialCoordinates>()
             .register_type::<TilesByCoordinates>()
             .register_type::<TileTypeAsset>()
-            .register_type_data::<Handle<TileTypeAsset>, ReflectHandle>()
-            .add_systems(Startup, SaveFile::load_from_file);
+            .register_type::<Handle<TileTypeAsset>>()
+            .register_type_data::<NeighboringTiles, ReflectComponent>()
+            .register_type_data::<ConnectedTiles, ReflectComponent>()
+            .register_type_data::<TileType, ReflectComponent>()
+            .register_type_data::<AxialCoordinates, ReflectComponent>()
+            .register_type_data::<TilesByCoordinates, ReflectResource>()
+            .register_type_data::<TileTypeAsset, ReflectAsset>()
+            .register_type_data::<Handle<TileTypeAsset>, ReflectHandle>();
+
+        app.init_asset::<TileTypeAsset>()
+            .init_asset_loader::<TileTypeLoader>();
+
+        app.add_systems(OnEnter(GameStates::Gameplay), setup);
+
+        app.init_state::<GameplayStates>();
     }
+}
+
+#[derive(States, Reflect, Hash, Default, Debug, Clone, PartialEq, Eq)]
+enum GameplayStates {
+    #[default]
+    None,
+    LoadingScreen,
+    InGame,
 }
