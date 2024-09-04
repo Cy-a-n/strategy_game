@@ -7,7 +7,7 @@ use bevy::{
     },
     input::{keyboard::KeyCode, ButtonInput},
     math::Vec3,
-    render::camera::{Camera, OrthographicProjection},
+    render::camera::{Camera, ClearColorConfig, OrthographicProjection},
     state::state_scoped::StateScoped,
     time::Time,
     transform::components::Transform,
@@ -19,7 +19,13 @@ use super::components::MainCamera;
 
 pub(super) fn setup(mut commands: Commands) {
     commands.spawn((
-        Camera2dBundle::default(),
+        Camera2dBundle {
+            camera: Camera {
+                clear_color: ClearColorConfig::from(Color::BLACK),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
         MainCamera,
         StateScoped(GameStates::Gameplay),
     ));

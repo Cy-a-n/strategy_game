@@ -1,0 +1,17 @@
+SaveFile (
+    tiles: [
+        Tile (
+            tile_type: "forest",
+            cubic_coordinates: (0, 0, 0),
+        ),
+        Tile (
+            tile_type: "road",
+            cubic_coordinates: (1, 0, -1),
+        )
+    ],
+    tile_connections: [
+        TileConnection (
+            connected_tiles: ConnectedTiles(0, 1)
+        )
+    ],
+)
