@@ -1,6 +1,6 @@
 use bevy::prelude::{With, World};
 use bevy_egui::{
-    egui::{self, ScrollArea, Sense, SidePanel},
+    egui::{ScrollArea, SidePanel},
     EguiContext,
 };
 use bevy_inspector_egui::bevy_inspector::ui_for_world;

@@ -2,18 +2,11 @@ use std::fs;
 
 use bevy::{
     color::Color,
-    prelude::{Button, Camera, Camera2dBundle, Commands, NextState, ResMut, StateScoped},
+    prelude::{Camera, Camera2dBundle, Commands, NextState, StateScoped},
 };
-use bevy::{input::common_conditions::input_toggle_active, prelude::*};
-use bevy_egui::{
-    egui::{ScrollArea, Sense, SidePanel},
-    EguiContexts,
-};
-use bevy_egui::{EguiContext, EguiPlugin};
-use bevy_inspector_egui::{
-    bevy_inspector::{hierarchy::SelectedEntities, ui_for_world},
-    DefaultInspectorConfigPlugin,
-};
+use bevy::prelude::*;
+use bevy_egui::egui::{ScrollArea, SidePanel};
+use bevy_egui::EguiContext;
 use bevy_window::PrimaryWindow;
 
 use crate::{main_menu_plugin::MainMenuStates, resources::SaveFilePath, GameStates};
