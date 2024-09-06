@@ -2,7 +2,7 @@ use assets::{TileTypeAsset, TileTypeLoader};
 use bevy::{
     app::Plugin,
     asset::{AssetApp, Handle, ReflectAsset, ReflectHandle},
-    prelude::{AppExtStates, OnEnter, ReflectComponent, ReflectResource, States},
+    prelude::{AppExtStates, OnEnter, ReflectComponent, ReflectResource, StateSet, SubStates},
     reflect::Reflect,
 };
 use components::{AxialCoordinates, ConnectedTiles, NeighboringTiles, TileType};
@@ -11,7 +11,7 @@ use loading_screen_plugin::LoadingScreenPlugin;
 use resources::TilesByCoordinates;
 use systems::setup;
 
-use crate::GameStates;
+use crate::{cleanup::Cleanup, GameStates};
 
 mod in_game_plugin;
 mod loading_screen_plugin;
@@ -46,16 +46,18 @@ impl Plugin for GameplayPlugin {
         app.init_asset::<TileTypeAsset>()
             .init_asset_loader::<TileTypeLoader>();
 
-        app.add_systems(OnEnter(GameStates::Gameplay), setup);
+        app.add_systems(OnEnter(GameStates::Gameplay), setup)
+            .cleanup_resource::<TilesByCoordinates>(GameStates::Gameplay);
 
-        app.init_state::<GameplayStates>();
+        app.add_sub_state::<GameplayStates>();
+        app.enable_state_scoped_entities::<GameplayStates>();
     }
 }
 
-#[derive(States, Reflect, Hash, Default, Debug, Clone, PartialEq, Eq)]
+#[derive(SubStates, Reflect, Hash, Default, Debug, Clone, PartialEq, Eq)]
+#[source(GameStates = GameStates::Gameplay {..})]
 enum GameplayStates {
     #[default]
-    None,
     LoadingScreen,
     InGame,
 }

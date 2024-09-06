@@ -6,17 +6,23 @@ use bevy::{
     hierarchy::HierarchyPlugin,
     input::InputPlugin,
     log::LogPlugin,
+    prelude::ReflectResource,
     state::{app::AppExtStates, state::States},
     time::TimePlugin,
     transform::TransformPlugin,
     window::WindowPlugin,
 };
 use main_menu_plugin::MainMenuPlugin;
+use resources::SaveFilePath;
 
 use crate::gameplay_plugin::GameplayPlugin;
 
 mod gameplay_plugin;
 mod main_menu_plugin;
+
+mod cleanup;
+
+mod resources;
 
 pub struct MyGamePlugin;
 
@@ -36,9 +42,13 @@ impl Plugin for MyGamePlugin {
         debug_assert!(app.is_plugin_added::<TransformPlugin>());
         debug_assert!(app.is_plugin_added::<TimePlugin>());
 
-        app.add_plugins(MainMenuPlugin);
-        app.add_plugins(GameplayPlugin);
+        app.add_plugins((MainMenuPlugin, GameplayPlugin));
+
+        app.register_type::<SaveFilePath>()
+            .register_type_data::<SaveFilePath, ReflectResource>();
+
         app.init_state::<GameStates>();
+        app.enable_state_scoped_entities::<GameStates>();
     }
 }
 

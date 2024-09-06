@@ -5,7 +5,7 @@ use bevy::{
     prelude::Component,
     reflect::Reflect,
 };
-use derive_more::derive::{Add, AddAssign, Neg, Not, Sub, SubAssign};
+use derive_more::derive::{Add, AddAssign, Display, Neg, Not, Sub, SubAssign};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -34,6 +34,7 @@ pub struct ConnectedTiles(pub TileEntity, pub TileEntity);
 
 // TODO! Mention this is ref https://www.redblobgames.com/grids/hexagons/
 #[derive(
+    Display,
     Not,
     Neg,
     Add,
@@ -51,6 +52,7 @@ pub struct ConnectedTiles(pub TileEntity, pub TileEntity);
     PartialEq,
     Eq,
 )]
+#[display("({q}, {r})")]
 pub struct AxialCoordinates {
     q: i32,
     r: i32,

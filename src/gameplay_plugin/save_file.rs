@@ -8,7 +8,7 @@ type TileIdx = usize;
 pub struct Tile {
     pub tile_type: String,
     // TODO! Mention this is ref https://www.redblobgames.com/grids/hexagons/
-    pub cubic_coordinates: AxialCoordinates,
+    pub axial_coordinates: AxialCoordinates,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -1,9 +1,4 @@
-use bevy::{
-    app::{Plugin, Startup},
-    asset::{AssetApp, Handle, ReflectAsset, ReflectHandle},
-    prelude::{AppExtStates, OnEnter, ReflectComponent, ReflectResource, States},
-    reflect::Reflect,
-};
+use bevy::{app::Plugin, prelude::OnEnter};
 
 use systems::setup;
 
