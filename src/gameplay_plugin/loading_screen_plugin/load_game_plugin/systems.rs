@@ -1,4 +1,4 @@
-use std::{fs::File, io::Read};
+use std::{fmt::Display, fs::File, io::Read};
 
 use crate::{
     gameplay_plugin::{
@@ -29,6 +29,12 @@ use ron::de::from_bytes;
 
 use super::super::super::assets::TileTypeAsset;
 
+/// Utility function to log an error and set the game state to MainMenu.
+fn handle_error(game_states: &mut ResMut<NextState<GameStates>>, path: &str, err: impl Display) {
+    error!("Failed to load save file at {path}: {err}");
+    game_states.set(GameStates::MainMenu);
+}
+
 pub fn load_from_file(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -38,17 +44,15 @@ pub fn load_from_file(
     let path = save_file_path.as_ref().relative_to_assets();
     let game_state_path = format!("assets/{path}/game_state.ron");
     let mut bytes = vec![];
-    let mut file = match File::open(game_state_path.clone()) {
+    let mut file = match File::open(&game_state_path) {
         Ok(file) => file,
-        Err(_) => {
-            error!("Failed to load save file because \"{game_state_path}\" does not exist.");
-            game_states.as_mut().set(GameStates::MainMenu);
+        Err(err) => {
+            handle_error(&mut game_states, &game_state_path, err);
             return;
         }
     };
     if let Err(err) = file.read_to_end(&mut bytes) {
-        error!("Failed to load save file at \"{game_state_path}\": {err}");
-        game_states.as_mut().set(GameStates::MainMenu);
+        handle_error(&mut game_states, &game_state_path, err);
         return;
     };
     let SaveFile {
@@ -57,8 +61,7 @@ pub fn load_from_file(
     } = match from_bytes::<SaveFile>(&bytes) {
         Ok(value) => value,
         Err(err) => {
-            error!("Failed to load save file at \"{game_state_path}\": {err}");
-            game_states.as_mut().set(GameStates::MainMenu);
+            handle_error(&mut game_states, &game_state_path, err);
             return;
         }
     };
@@ -66,7 +69,7 @@ pub fn load_from_file(
     // Every component gets its own vec for now.
     let tile_ids = tiles
         .iter()
-        .map(|_| commands.spawn(()).id())
+        .map(|_| commands.spawn(StateScoped(GameStates::Gameplay)).id())
         .collect::<Vec<_>>();
     let mut tile_names = Vec::with_capacity(tiles.len());
     let mut tile_types = Vec::with_capacity(tiles.len());
@@ -76,7 +79,7 @@ pub fn load_from_file(
 
     let tile_connection_ids = tile_connections
         .iter()
-        .map(|_| commands.spawn(()).id())
+        .map(|_| commands.spawn(StateScoped(GameStates::Gameplay)).id())
         .collect::<Vec<_>>();
     let mut connected_tiles = Vec::with_capacity(tile_connections.len());
 
@@ -107,36 +110,194 @@ pub fn load_from_file(
     ) in tile_connections.iter().enumerate()
     {
         match AxialCoordinates::neighboring(
-            axial_coordinates.get(*tile_0).unwrap(),
-            axial_coordinates.get(*tile_1).unwrap(),
+            match axial_coordinates.get(*tile_0) {
+                Some(axial_coordinates) => axial_coordinates,
+                None => {
+                    handle_error(&mut game_states, &game_state_path, format!("The tile connection which connects the tiles at index {tile_0} and {tile_1} did contain the out-of-bounds tile index {tile_0}."));
+                    return;
+                }
+            },
+            match axial_coordinates.get(*tile_1) {
+                Some(axial_coordinates) => axial_coordinates,
+                None => {
+                    handle_error(&mut game_states, &game_state_path, format!("The tile connection which connects the tiles at index {tile_0} and {tile_1} did contain the out-of-bounds tile index {tile_1}."));
+                    return;
+                }
+            },
         ) {
             Some(neighboring) => match neighboring {
                 Neighboring::Right => {
-                    neighboring_tiles[*tile_0].right = Some(tile_connection_ids[i]);
-                    neighboring_tiles[*tile_1].left = Some(tile_connection_ids[i]);
+                    let tile = &mut neighboring_tiles[*tile_0].right;
+                    if tile.is_some() {
+                        handle_error(
+                            &mut game_states,
+                            &game_state_path,
+                            format!(
+                                "Duplicate connection detected: Multiple tile connections point to the 'right' side of the tile at index {tile_0}. One of these connections also links to the tile at index {tile_1}."
+                            )
+                        );
+                        return;
+                    }
+                    *tile = Some(tile_connection_ids[i]);
+
+                    let tile = &mut neighboring_tiles[*tile_1].left;
+                    if tile.is_some() {
+                        handle_error(
+                            &mut game_states,
+                            &game_state_path,
+                            format!(
+                                "Duplicate connection detected: Multiple tile connections point to the 'left' side of the tile at index {tile_1}. One of these connections also links to the tile at index {tile_0}."
+                            )
+                        );
+                        return;
+                    }
+                    *tile = Some(tile_connection_ids[i]);
                 }
+
                 Neighboring::LowerRight => {
-                    neighboring_tiles[*tile_0].lower_right = Some(tile_connection_ids[i]);
-                    neighboring_tiles[*tile_1].upper_left = Some(tile_connection_ids[i]);
+                    let tile = &mut neighboring_tiles[*tile_0].lower_right;
+                    if tile.is_some() {
+                        handle_error(
+                            &mut game_states,
+                            &game_state_path,
+                            format!(
+                                "Duplicate connection detected: Multiple tile connections point to the 'lower right' side of the tile at index {tile_0}. One of these connections also links to the tile at index {tile_1}."
+                            )
+                        );
+                        return;
+                    }
+                    *tile = Some(tile_connection_ids[i]);
+
+                    let tile = &mut neighboring_tiles[*tile_1].upper_left;
+                    if tile.is_some() {
+                        handle_error(
+                            &mut game_states,
+                            &game_state_path,
+                            format!(
+                                "Duplicate connection detected: Multiple tile connections point to the 'upper left' side of the tile at index {tile_1}. One of these connections also links to the tile at index {tile_0}."
+                            )
+                        );
+                        return;
+                    }
+                    *tile = Some(tile_connection_ids[i]);
                 }
+
                 Neighboring::LowerLeft => {
-                    neighboring_tiles[*tile_0].lower_left = Some(tile_connection_ids[i]);
-                    neighboring_tiles[*tile_1].upper_right = Some(tile_connection_ids[i]);
+                    let tile = &mut neighboring_tiles[*tile_0].lower_left;
+                    if tile.is_some() {
+                        handle_error(
+                            &mut game_states,
+                            &game_state_path,
+                            format!(
+                                "Duplicate connection detected: Multiple tile connections point to the 'lower left' side of the tile at index {tile_0}. One of these connections also links to the tile at index {tile_1}."
+                            )
+                        );
+                        return;
+                    }
+                    *tile = Some(tile_connection_ids[i]);
+
+                    let tile = &mut neighboring_tiles[*tile_1].upper_right;
+                    if tile.is_some() {
+                        handle_error(
+                            &mut game_states,
+                            &game_state_path,
+                            format!(
+                                "Duplicate connection detected: Multiple tile connections point to the 'upper right' side of the tile at index {tile_1}. One of these connections also links to the tile at index {tile_0}."
+                            )
+                        );
+                        return;
+                    }
+                    *tile = Some(tile_connection_ids[i]);
                 }
+
                 Neighboring::Left => {
-                    neighboring_tiles[*tile_0].left = Some(tile_connection_ids[i]);
-                    neighboring_tiles[*tile_1].right = Some(tile_connection_ids[i]);
+                    let tile = &mut neighboring_tiles[*tile_0].left;
+                    if tile.is_some() {
+                        handle_error(
+                            &mut game_states,
+                            &game_state_path,
+                            format!(
+                                "Duplicate connection detected: Multiple tile connections point to the 'left' side of the tile at index {tile_0}. One of these connections also links to the tile at index {tile_1}."
+                            )
+                        );
+                        return;
+                    }
+                    *tile = Some(tile_connection_ids[i]);
+
+                    let tile = &mut neighboring_tiles[*tile_1].right;
+                    if tile.is_some() {
+                        handle_error(
+                            &mut game_states,
+                            &game_state_path,
+                            format!(
+                                "Duplicate connection detected: Multiple tile connections point to the 'right' side of the tile at index {tile_1}. One of these connections also links to the tile at index {tile_0}."
+                            )
+                        );
+                        return;
+                    }
+                    *tile = Some(tile_connection_ids[i]);
                 }
+
                 Neighboring::UpperLeft => {
-                    neighboring_tiles[*tile_0].upper_left = Some(tile_connection_ids[i]);
-                    neighboring_tiles[*tile_1].lower_right = Some(tile_connection_ids[i]);
+                    let tile = &mut neighboring_tiles[*tile_0].upper_left;
+                    if tile.is_some() {
+                        handle_error(
+                            &mut game_states,
+                            &game_state_path,
+                            format!(
+                                "Duplicate connection detected: Multiple tile connections point to the 'upper left' side of the tile at index {tile_0}. One of these connections also links to the tile at index {tile_1}."
+                            )
+                        );
+                        return;
+                    }
+                    *tile = Some(tile_connection_ids[i]);
+
+                    let tile = &mut neighboring_tiles[*tile_1].lower_right;
+                    if tile.is_some() {
+                        handle_error(
+                            &mut game_states,
+                            &game_state_path,
+                            format!(
+                                "Duplicate connection detected: Multiple tile connections point to the 'lower right' side of the tile at index {tile_1}. One of these connections also links to the tile at index {tile_0}."
+                            )
+                        );
+                        return;
+                    }
+                    *tile = Some(tile_connection_ids[i]);
                 }
+
                 Neighboring::UpperRight => {
-                    neighboring_tiles[*tile_0].upper_right = Some(tile_connection_ids[i]);
-                    neighboring_tiles[*tile_1].lower_left = Some(tile_connection_ids[i]);
+                    let tile = &mut neighboring_tiles[*tile_0].upper_right;
+                    if tile.is_some() {
+                        handle_error(
+                            &mut game_states,
+                            &game_state_path,
+                            format!(
+                                "Duplicate connection detected: Multiple tile connections point to the 'upper right' side of the tile at index {tile_0}. One of these connections also links to the tile at index {tile_1}."
+                            )
+                        );
+                        return;
+                    }
+                    *tile = Some(tile_connection_ids[i]);
+
+                    let tile = &mut neighboring_tiles[*tile_1].lower_left;
+                    if tile.is_some() {
+                        handle_error(
+                            &mut game_states,
+                            &game_state_path,
+                            format!(
+                                "Duplicate connection detected: Multiple tile connections point to the 'lower left' side of the tile at index {tile_1}. One of these connections also links to the tile at index {tile_0}."
+                            )
+                        );
+                        return;
+                    }
+                    *tile = Some(tile_connection_ids[i]);
                 }
             },
-            None => todo!(),
+            None => {
+                handle_error(&mut game_states, &game_state_path, format!("The tile connection which connects the tiles at index {tile_0} and {tile_1} connects tiles that are not neighboring."));
+                return;
+            }
         }
         connected_tiles.push(super::super::super::components::ConnectedTiles(
             tile_ids[*tile_0],
@@ -158,11 +319,7 @@ pub fn load_from_file(
                 .0
                 .contains_key(&axial_coordinates.next_right())
         {
-            error!(
-                "Failed to load save file because the tile at the axial coordinates {axial_coordinates} had a neighboring tile to its right at coordinates {} but no corresponding `TileConnection` at \"{game_state_path}\".",
-                axial_coordinates.next_right()
-            );
-            game_states.as_mut().set(GameStates::MainMenu);
+            handle_error(&mut game_states, &game_state_path, format!("The tile at the axial coordinates {axial_coordinates} had a neighboring tile to its right at coordinates {} but no corresponding `TileConnection`.", axial_coordinates.next_right()));
             return;
         }
         if neighboring_tiles.lower_right.is_none()
@@ -170,11 +327,7 @@ pub fn load_from_file(
                 .0
                 .contains_key(&axial_coordinates.next_lower_right())
         {
-            error!(
-                "Failed to load save file because the tile at the axial coordinates {axial_coordinates} had a neighboring tile to its lower right at coordinates {} but no corresponding `TileConnection` at \"{game_state_path}\".",
-                axial_coordinates.next_lower_right()
-            );
-            game_states.as_mut().set(GameStates::MainMenu);
+            handle_error(&mut game_states, &game_state_path, format!("The tile at the axial coordinates {axial_coordinates} had a neighboring tile to its lower right at coordinates {} but no corresponding `TileConnection`.", axial_coordinates.next_right()));
             return;
         }
         if neighboring_tiles.lower_left.is_none()
@@ -182,11 +335,7 @@ pub fn load_from_file(
                 .0
                 .contains_key(&axial_coordinates.next_lower_left())
         {
-            error!(
-                "Failed to load save file because the tile at the axial coordinates {axial_coordinates} had a neighboring tile to its lower left at coordinates {} but no corresponding `TileConnection` at \"{game_state_path}\".",
-                axial_coordinates.next_lower_left()
-            );
-            game_states.as_mut().set(GameStates::MainMenu);
+            handle_error(&mut game_states, &game_state_path, format!("The tile at the axial coordinates {axial_coordinates} had a neighboring tile to its lower left at coordinates {} but no corresponding `TileConnection`.", axial_coordinates.next_right()));
             return;
         }
         if neighboring_tiles.left.is_none()
@@ -194,11 +343,7 @@ pub fn load_from_file(
                 .0
                 .contains_key(&axial_coordinates.next_left())
         {
-            error!(
-                "Failed to load save file because the tile at the axial coordinates {axial_coordinates} had a neighboring tile to its left at coordinates {} but no corresponding `TileConnection` at \"{game_state_path}\".",
-                axial_coordinates.next_left()
-            );
-            game_states.as_mut().set(GameStates::MainMenu);
+            handle_error(&mut game_states, &game_state_path, format!("The tile at the axial coordinates {axial_coordinates} had a neighboring tile to its left at coordinates {} but no corresponding `TileConnection`.", axial_coordinates.next_right()));
             return;
         }
         if neighboring_tiles.upper_left.is_none()
@@ -206,11 +351,7 @@ pub fn load_from_file(
                 .0
                 .contains_key(&axial_coordinates.next_upper_left())
         {
-            error!(
-                "Failed to load save file because the tile at the axial coordinates {axial_coordinates} had a neighboring tile to its upper left at coordinates {} but no corresponding `TileConnection` at \"{game_state_path}\".",
-                axial_coordinates.next_upper_left()
-            );
-            game_states.as_mut().set(GameStates::MainMenu);
+            handle_error(&mut game_states, &game_state_path, format!("The tile at the axial coordinates {axial_coordinates} had a neighboring tile to its upper left at coordinates {} but no corresponding `TileConnection`.", axial_coordinates.next_right()));
             return;
         }
         if neighboring_tiles.upper_right.is_none()
@@ -218,11 +359,7 @@ pub fn load_from_file(
                 .0
                 .contains_key(&axial_coordinates.next_upper_right())
         {
-            error!(
-                "Failed to load save file because the tile at the axial coordinates {axial_coordinates} had a neighboring tile to its upper right at coordinates {} but no corresponding `TileConnection` at \"{game_state_path}\".",
-                axial_coordinates.next_upper_right()
-            );
-            game_states.as_mut().set(GameStates::MainMenu);
+            handle_error(&mut game_states, &game_state_path, format!("The tile at the axial coordinates {axial_coordinates} had a neighboring tile to its upper right at coordinates {} but no corresponding `TileConnection`.", axial_coordinates.next_right()));
             return;
         }
     }
@@ -235,39 +372,45 @@ pub fn load_from_file(
         .collect(),
     });
 
-    for (tile_id, tile_name, tile_type, texture, axial_coordinates, neighboring_tiles) in izip!(
-        tile_ids,
-        tile_names,
-        tile_types,
-        textures,
-        axial_coordinates,
-        neighboring_tiles
-    ) {
-        commands.entity(tile_id).insert((
-            tile_type,
-            tile_name,
-            SpriteBundle {
-                texture,
-                transform: Transform::from_translation(axial_coordinates.into()),
-                ..Default::default()
-            },
-            axial_coordinates,
-            neighboring_tiles,
-            StateScoped(GameStates::Gameplay),
-        ));
-    }
+    commands.insert_or_spawn_batch(
+        tile_ids.into_iter().zip(
+            izip!(
+                tile_names,
+                tile_types,
+                textures,
+                axial_coordinates,
+                neighboring_tiles
+            )
+            .map(
+                |(tile_name, tile_type, texture, axial_coordinates, neighboring_tiles)| {
+                    (
+                        tile_type,
+                        tile_name,
+                        SpriteBundle {
+                            texture,
+                            transform: Transform::from_translation(axial_coordinates.into()),
+                            ..Default::default()
+                        },
+                        axial_coordinates,
+                        neighboring_tiles,
+                    )
+                },
+            ),
+        ),
+    );
 
-    for (tile_connection_id, connected_tiles) in izip!(tile_connection_ids, connected_tiles) {
-        commands.entity(tile_connection_id).insert((
-            Name::new(format!(
-                "tile_connection_{}_{}",
-                connected_tiles.0.index(),
-                connected_tiles.1.index()
-            )),
-            connected_tiles,
-            StateScoped(GameStates::Gameplay),
-        ));
-    }
+    commands.insert_or_spawn_batch(tile_connection_ids.into_iter().zip(
+        izip!(connected_tiles).map(|connected_tiles| {
+            (
+                Name::new(format!(
+                    "tile_connection_{}_{}",
+                    connected_tiles.0.index(),
+                    connected_tiles.1.index()
+                )),
+                connected_tiles,
+            )
+        }),
+    ));
 
     commands.insert_resource(tiles_by_coordinates);
 }
