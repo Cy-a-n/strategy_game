@@ -327,7 +327,7 @@ pub fn load_from_file(
                 .0
                 .contains_key(&axial_coordinates.next_lower_right())
         {
-            handle_error(&mut game_states, &game_state_path, format!("The tile at the axial coordinates {axial_coordinates} had a neighboring tile to its lower right at coordinates {} but no corresponding `TileConnection`.", axial_coordinates.next_right()));
+            handle_error(&mut game_states, &game_state_path, format!("The tile at the axial coordinates {axial_coordinates} had a neighboring tile to its lower right at coordinates {} but no corresponding `TileConnection`.", axial_coordinates.next_lower_right()));
             return;
         }
         if neighboring_tiles.lower_left.is_none()
@@ -335,7 +335,7 @@ pub fn load_from_file(
                 .0
                 .contains_key(&axial_coordinates.next_lower_left())
         {
-            handle_error(&mut game_states, &game_state_path, format!("The tile at the axial coordinates {axial_coordinates} had a neighboring tile to its lower left at coordinates {} but no corresponding `TileConnection`.", axial_coordinates.next_right()));
+            handle_error(&mut game_states, &game_state_path, format!("The tile at the axial coordinates {axial_coordinates} had a neighboring tile to its lower left at coordinates {} but no corresponding `TileConnection`.", axial_coordinates.next_lower_left()));
             return;
         }
         if neighboring_tiles.left.is_none()
@@ -343,7 +343,7 @@ pub fn load_from_file(
                 .0
                 .contains_key(&axial_coordinates.next_left())
         {
-            handle_error(&mut game_states, &game_state_path, format!("The tile at the axial coordinates {axial_coordinates} had a neighboring tile to its left at coordinates {} but no corresponding `TileConnection`.", axial_coordinates.next_right()));
+            handle_error(&mut game_states, &game_state_path, format!("The tile at the axial coordinates {axial_coordinates} had a neighboring tile to its left at coordinates {} but no corresponding `TileConnection`.", axial_coordinates.next_left()));
             return;
         }
         if neighboring_tiles.upper_left.is_none()
@@ -351,7 +351,7 @@ pub fn load_from_file(
                 .0
                 .contains_key(&axial_coordinates.next_upper_left())
         {
-            handle_error(&mut game_states, &game_state_path, format!("The tile at the axial coordinates {axial_coordinates} had a neighboring tile to its upper left at coordinates {} but no corresponding `TileConnection`.", axial_coordinates.next_right()));
+            handle_error(&mut game_states, &game_state_path, format!("The tile at the axial coordinates {axial_coordinates} had a neighboring tile to its upper left at coordinates {} but no corresponding `TileConnection`.", axial_coordinates.next_upper_left()));
             return;
         }
         if neighboring_tiles.upper_right.is_none()
@@ -359,7 +359,7 @@ pub fn load_from_file(
                 .0
                 .contains_key(&axial_coordinates.next_upper_right())
         {
-            handle_error(&mut game_states, &game_state_path, format!("The tile at the axial coordinates {axial_coordinates} had a neighboring tile to its upper right at coordinates {} but no corresponding `TileConnection`.", axial_coordinates.next_right()));
+            handle_error(&mut game_states, &game_state_path, format!("The tile at the axial coordinates {axial_coordinates} had a neighboring tile to its upper right at coordinates {} but no corresponding `TileConnection`.", axial_coordinates.next_upper_right()));
             return;
         }
     }

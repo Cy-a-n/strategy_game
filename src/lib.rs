@@ -1,6 +1,6 @@
 use bevy::{
     a11y::AccessibilityPlugin,
-    app::{PanicHandlerPlugin, Plugin},
+    app::{PanicHandlerPlugin, Plugin, Update},
     core::{FrameCountPlugin, TaskPoolPlugin, TypeRegistrationPlugin},
     diagnostic::DiagnosticsPlugin,
     hierarchy::HierarchyPlugin,
@@ -12,8 +12,10 @@ use bevy::{
     transform::TransformPlugin,
     window::WindowPlugin,
 };
+use bevy_egui::EguiPlugin;
 use main_menu_plugin::MainMenuPlugin;
 use resources::SaveFilePath;
+use systems::bevy_inspector_panel;
 
 use crate::gameplay_plugin::GameplayPlugin;
 
@@ -23,11 +25,13 @@ mod main_menu_plugin;
 mod cleanup;
 
 mod resources;
+mod systems;
 
 pub struct MyGamePlugin;
 
 impl Plugin for MyGamePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
+        debug_assert!(app.is_plugin_added::<EguiPlugin>());
         // Assert DefaultPlugins added.
         debug_assert!(app.is_plugin_added::<LogPlugin>());
         debug_assert!(app.is_plugin_added::<TaskPoolPlugin>());
@@ -46,6 +50,8 @@ impl Plugin for MyGamePlugin {
 
         app.register_type::<SaveFilePath>()
             .register_type_data::<SaveFilePath, ReflectResource>();
+
+        app.add_systems(Update, bevy_inspector_panel);
 
         app.init_state::<GameStates>();
         app.enable_state_scoped_entities::<GameStates>();

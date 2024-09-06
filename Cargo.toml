@@ -11,6 +11,10 @@ serde = { version = "1", features = ["derive"] }
 thiserror = "1.0.63"
 itertools = "0.13.0"
 derive_more = { version = "1.0.0", features = ["full"] }
+bevy_egui = "0.29.0"
+# For bevy_inspector integration: https://github.com/jakobhellermann/bevy-inspector-egui/blob/main/crates/bevy-inspector-egui/examples/integrations/side_panel.rs
+bevy_window = "0.14.1"
+bevy_utils = "0.14.1"
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]

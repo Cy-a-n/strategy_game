@@ -1,0 +1,143 @@
+SaveFile (
+    tiles: [
+        // 0: Center
+        Tile (
+            tile_type: "forest",
+            axial_coordinates: AxialCoordinates (
+                q: 0,
+                r: 0,
+            ),
+        ),
+        // 1: Right
+        Tile (
+            tile_type: "road",
+            axial_coordinates: AxialCoordinates (
+                q: 1,
+                r: 0,
+            ),
+        ),
+        // 2: Lower right
+        Tile (
+            tile_type: "urban",
+            axial_coordinates: AxialCoordinates (
+                q: 0,
+                r: 1,
+            ),
+        ),
+        // 3: Lower left
+        Tile (
+            tile_type: "water",
+            axial_coordinates: AxialCoordinates (
+                q: -1,
+                r: 1,
+            ),
+        ), 
+        // 4: Left 
+        Tile (
+            tile_type: "forest",
+            axial_coordinates: AxialCoordinates (
+                q: -1,
+                r: 0,
+            ),
+        ),
+        // 5: Upper left
+        Tile (
+            tile_type: "road",
+            axial_coordinates: AxialCoordinates (
+                q: 0,
+                r: -1,
+            ),
+        ),
+        // 6: Upper right
+        Tile (
+            tile_type: "urban",
+            axial_coordinates: AxialCoordinates (
+                q: 1,
+                r: -1,
+            ),
+        ),
+        // 7: Upper right => right
+        Tile (
+            tile_type: "water",
+            axial_coordinates: AxialCoordinates (
+                q: 2,
+                r: -1,
+            ),
+        ),
+        // 8: Right => right
+        Tile (
+            tile_type: "forest",
+            axial_coordinates: AxialCoordinates (
+                q: 2,
+                r: 0,
+            ),
+        ),
+        // 9: Lower right => right
+        Tile (
+            tile_type: "road",
+            axial_coordinates: AxialCoordinates (
+                q: 1,
+                r: 1,
+            ),
+        ),
+    ],
+    tile_connections: [
+        TileConnection (
+            connected_tiles: ConnectedTiles(0, 1),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(0, 2),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(0, 3),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(0, 4),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(0, 5),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(0, 6),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(1, 2),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(2, 3),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(3, 4),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(4, 5),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(5, 6),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(6, 1),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(6, 7),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(1, 7),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(1, 8),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(1, 9),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(2, 9),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(8, 7),
+        ),
+        TileConnection (
+            connected_tiles: ConnectedTiles(8, 9),
+        )
+    ],
+)
