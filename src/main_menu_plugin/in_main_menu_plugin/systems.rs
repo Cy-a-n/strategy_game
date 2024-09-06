@@ -1,10 +1,10 @@
 use std::fs;
 
+use bevy::prelude::*;
 use bevy::{
     color::Color,
     prelude::{Camera, Camera2dBundle, Commands, NextState, StateScoped},
 };
-use bevy::prelude::*;
 use bevy_egui::egui::{ScrollArea, SidePanel};
 use bevy_egui::EguiContext;
 use bevy_window::PrimaryWindow;
@@ -34,7 +34,7 @@ pub fn temporary_main_menu(world: &mut World) {
         .resizable(true)
         .show(ctx.clone().get_mut(), |ui| {
             ScrollArea::both().show(ui, |ui| {
-                for entry in fs::read_dir("./assets/save_files/scenarios").unwrap() {
+                for entry in fs::read_dir("assets/save_files/scenarios").unwrap() {
                     let path = entry.unwrap().path();
                     if path.is_dir() {
                         let dir_name = path.file_name().unwrap().to_string_lossy();

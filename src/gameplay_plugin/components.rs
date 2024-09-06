@@ -9,16 +9,17 @@ use derive_more::derive::{Add, AddAssign, Display, Neg, Not, Sub, SubAssign};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use super::assets::TileTypeAsset;
+use super::assets;
 
 pub type TileConnectionEntity = Entity;
 pub type TileEntity = Entity;
 
 #[derive(Reflect, Component, Default, Debug, Clone, PartialEq, Eq)]
 pub struct TileType {
-    tile_type_data: Handle<TileTypeAsset>,
+    tile_type_data: Handle<assets::TileType>,
 }
 
+/// Each tile points to connecting entities which in turn point to the tile's neighboring tiles.
 #[derive(Reflect, Component, Default, Debug, Clone, PartialEq, Eq)]
 pub struct NeighboringTiles {
     pub right: Option<TileConnectionEntity>,

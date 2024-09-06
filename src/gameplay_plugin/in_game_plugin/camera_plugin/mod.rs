@@ -1,9 +1,10 @@
 use bevy::{
     app::{Plugin, Update},
     ecs::schedule::IntoSystemConfigs,
-    prelude::OnEnter,
+    prelude::{OnEnter, ReflectComponent},
     state::condition::in_state,
 };
+use components::MainCamera;
 
 use crate::gameplay_plugin::GameplayStates;
 
@@ -16,6 +17,9 @@ pub(super) struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
+        app.register_type::<MainCamera>()
+            .register_type_data::<MainCamera, ReflectComponent>();
+
         app.add_systems(OnEnter(GameplayStates::InGame), setup)
             .add_systems(
                 Update,

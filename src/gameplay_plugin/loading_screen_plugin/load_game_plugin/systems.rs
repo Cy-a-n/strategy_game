@@ -11,6 +11,7 @@ use crate::{
 
 use super::{
     super::super::{
+        components::{self, NeighboringTiles},
         resources::TilesByCoordinates,
         save_file::{ConnectedTiles, SaveFile, Tile, TileConnection},
     },
@@ -27,7 +28,7 @@ use bevy::{
 use itertools::{chain, izip};
 use ron::de::from_bytes;
 
-use super::super::super::assets::TileTypeAsset;
+use super::super::super::assets::TileType;
 
 /// Utility function to log an error and set the game state to MainMenu.
 fn handle_error(game_states: &mut ResMut<NextState<GameStates>>, path: &str, err: impl Display) {
@@ -41,6 +42,7 @@ pub fn load_from_file(
     mut game_states: ResMut<NextState<GameStates>>,
     save_file_path: Res<SaveFilePath>,
 ) {
+    // Read the file and parse it.
     let path = save_file_path.as_ref().relative_to_assets();
     let game_state_path = format!("assets/{path}/game_state.ron");
     let mut bytes = vec![];
@@ -66,6 +68,7 @@ pub fn load_from_file(
         }
     };
 
+    // Prepare Vecs of entity ids and corresponding components.
     // Every component gets its own vec for now.
     let tile_ids = tiles
         .iter()
@@ -83,25 +86,27 @@ pub fn load_from_file(
         .collect::<Vec<_>>();
     let mut connected_tiles = Vec::with_capacity(tile_connections.len());
 
+    // Initialize the components of the tile entities that can be easily derived from the save file.
     for Tile {
         tile_type,
         axial_coordinates: current_axial_coordinates,
     } in tiles
     {
         tile_names.push(Name::new(tile_type.to_string()));
-        tile_types
-            .push(asset_server.load::<TileTypeAsset>(format!(
-                "{path}/tile_types/{tile_type}/tile_type_data.ron"
-            )));
+        tile_types.push(
+            asset_server
+                .load::<TileType>(format!("{path}/tile_types/{tile_type}/tile_type_data.ron")),
+        );
         textures
             .push(asset_server.load::<Image>(format!("{path}/tile_types/{tile_type}/texture.png")));
 
         axial_coordinates.push(current_axial_coordinates);
 
-        // To be filled later.
-        neighboring_tiles.push(super::super::super::components::NeighboringTiles::default());
+        // Push default values that are to be updated later.
+        neighboring_tiles.push(NeighboringTiles::default());
     }
 
+    // Link the each tile to its neighboring tiles with the ConnectedTiles component acting as an intermediary.
     for (
         i,
         TileConnection {
@@ -299,12 +304,13 @@ pub fn load_from_file(
                 return;
             }
         }
-        connected_tiles.push(super::super::super::components::ConnectedTiles(
+        connected_tiles.push(components::ConnectedTiles(
             tile_ids[*tile_0],
             tile_ids[*tile_1],
         ));
     }
 
+    // Construct this resource.
     let mut tiles_by_coordinates = TilesByCoordinates(HashMap::new());
     for (tile_id, coordinates) in tile_ids.iter().zip(axial_coordinates.iter()) {
         tiles_by_coordinates.0.insert(*coordinates, *tile_id);
@@ -364,6 +370,7 @@ pub fn load_from_file(
         }
     }
 
+    // The save file is valid. Finally spawn the remaining resources and previously constructed components into their respective entities.
     commands.insert_resource(LoadFromFileSuccessful {
         assets_to_load: chain!(
             tile_types.iter().map(|handle| handle.clone().untyped()),

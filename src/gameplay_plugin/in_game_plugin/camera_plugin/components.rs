@@ -1,4 +1,4 @@
-use bevy::ecs::component::Component;
+use bevy::{ecs::component::Component, reflect::Reflect};
 
-#[derive(Component, Debug, Clone, PartialEq, Eq, Hash, Default)]
+#[derive(Component, Reflect, Debug, Clone, PartialEq, Eq)]
 pub(super) struct MainCamera;

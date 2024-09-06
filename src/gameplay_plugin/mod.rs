@@ -1,4 +1,4 @@
-use assets::{TileTypeAsset, TileTypeLoader};
+use assets::TileTypeLoader;
 use bevy::{
     app::Plugin,
     asset::{AssetApp, Handle, ReflectAsset, ReflectHandle},
@@ -33,17 +33,17 @@ impl Plugin for GameplayPlugin {
             .register_type::<TileType>()
             .register_type::<AxialCoordinates>()
             .register_type::<TilesByCoordinates>()
-            .register_type::<TileTypeAsset>()
-            .register_type::<Handle<TileTypeAsset>>()
+            .register_type::<assets::TileType>()
+            .register_type::<Handle<assets::TileType>>()
             .register_type_data::<NeighboringTiles, ReflectComponent>()
             .register_type_data::<ConnectedTiles, ReflectComponent>()
             .register_type_data::<TileType, ReflectComponent>()
             .register_type_data::<AxialCoordinates, ReflectComponent>()
             .register_type_data::<TilesByCoordinates, ReflectResource>()
-            .register_type_data::<TileTypeAsset, ReflectAsset>()
-            .register_type_data::<Handle<TileTypeAsset>, ReflectHandle>();
+            .register_type_data::<assets::TileType, ReflectAsset>()
+            .register_type_data::<Handle<assets::TileType>, ReflectHandle>();
 
-        app.init_asset::<TileTypeAsset>()
+        app.init_asset::<assets::TileType>()
             .init_asset_loader::<TileTypeLoader>();
 
         app.add_systems(OnEnter(GameStates::Gameplay), setup)

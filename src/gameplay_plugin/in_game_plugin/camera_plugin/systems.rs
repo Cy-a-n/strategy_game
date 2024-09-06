@@ -7,6 +7,7 @@ use bevy::{
     },
     input::{keyboard::KeyCode, ButtonInput},
     math::Vec3,
+    prelude::{Msaa, ResMut},
     render::camera::{Camera, ClearColorConfig, OrthographicProjection},
     state::state_scoped::StateScoped,
     time::Time,
@@ -17,13 +18,15 @@ use crate::gameplay_plugin::GameplayStates;
 
 use super::components::MainCamera;
 
-pub(super) fn setup(mut commands: Commands) {
+pub(super) fn setup(mut commands: Commands, mut msaa: ResMut<Msaa>) {
+    *msaa.as_mut() = Msaa::Off;
     commands.spawn((
         Camera2dBundle {
             camera: Camera {
                 clear_color: ClearColorConfig::from(Color::BLACK),
                 ..Default::default()
             },
+
             ..Default::default()
         },
         MainCamera,

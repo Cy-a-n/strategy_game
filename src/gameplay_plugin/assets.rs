@@ -7,7 +7,7 @@ use serde::Deserialize;
 use thiserror::Error;
 
 #[derive(Deserialize, Reflect, Asset, Debug, Clone, PartialEq, Eq)]
-pub struct TileTypeAsset {
+pub struct TileType {
     combat_width: u8,
 }
 
@@ -27,7 +27,7 @@ pub enum TileTypeLoaderError {
 }
 
 impl AssetLoader for TileTypeLoader {
-    type Asset = TileTypeAsset;
+    type Asset = TileType;
     type Settings = ();
     type Error = TileTypeLoaderError;
 
@@ -39,7 +39,7 @@ impl AssetLoader for TileTypeLoader {
     ) -> Result<Self::Asset, Self::Error> {
         let mut bytes = Vec::new();
         reader.read_to_end(&mut bytes).await?;
-        let tile_type_data = from_bytes::<TileTypeAsset>(&bytes)?;
+        let tile_type_data = from_bytes::<TileType>(&bytes)?;
         Ok(tile_type_data)
     }
 
