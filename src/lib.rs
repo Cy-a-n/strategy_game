@@ -1,3 +1,7 @@
+// TODO!
+// Currently used in [crate::resources::HexagonMap] to calculate the size of a hexagon map based on its radius as well as the tiles needed for it.
+// #![feature(generic_const_exprs)]
+
 use bevy::{
     a11y::AccessibilityPlugin,
     app::{PanicHandlerPlugin, Plugin, Update},

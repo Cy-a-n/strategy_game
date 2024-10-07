@@ -1,26 +1,28 @@
 use serde::{Deserialize, Serialize};
 
-use super::components::AxialCoordinates;
+use super::components::TempConnectionComponent;
 
-type TileIdx = usize;
+pub type TileTypePath = String;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-pub struct Tile {
-    pub tile_type: String,
-    // TODO! Mention this is ref https://www.redblobgames.com/grids/hexagons/
-    pub axial_coordinates: AxialCoordinates,
+pub struct SaveFileTileData {
+    pub tile_type: TileTypePath,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-pub struct ConnectedTiles(pub TileIdx, pub TileIdx);
+pub struct SaveFileTileConnection {
+    pub temp_data: TempConnectionComponent,
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-pub struct TileConnection {
-    pub connected_tiles: ConnectedTiles,
+pub struct SaveFileTile {
+    pub tile_data: SaveFileTileData,
+    pub tile_connection_right: SaveFileTileConnection,
+    pub tile_connection_lower_right: SaveFileTileConnection,
+    pub tile_connection_lower_left: SaveFileTileConnection,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct SaveFile {
-    pub tiles: Vec<Tile>,
-    pub tile_connections: Vec<TileConnection>,
+    pub tiles: Vec<SaveFileTile>,
 }

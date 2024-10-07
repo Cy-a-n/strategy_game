@@ -9,7 +9,6 @@ pub fn setup(mut commands: Commands) {
     commands.spawn((
         Camera2dBundle {
             camera: Camera {
-                clear_color: Color::WHITE.into(),
                 ..Default::default()
             },
             ..Default::default()

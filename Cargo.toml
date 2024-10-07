@@ -1,3 +1,7 @@
+[workspace]
+members = ["macros"]
+
+
 [package]
 name = "strategy_game"
 version = "0.1.0"
@@ -5,7 +9,7 @@ edition = "2021"
 
 [dependencies]
 bevy = "0.14.1"
-bevy-inspector-egui = "0.25.2"
+bevy-inspector-egui = "0.26.0"
 ron = "0.8"
 serde = { version = "1", features = ["derive"] }
 thiserror = "1.0.63"
@@ -15,6 +19,7 @@ bevy_egui = "0.29.0"
 # For bevy_inspector integration: https://github.com/jakobhellermann/bevy-inspector-egui/blob/main/crates/bevy-inspector-egui/examples/integrations/side_panel.rs
 bevy_window = "0.14.1"
 bevy_utils = "0.14.1"
+strum = "0.26.3"
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]
